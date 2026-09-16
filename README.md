@@ -8,7 +8,7 @@
 ![SQL](https://img.shields.io/badge/SQL-sqldf%20%2F%20Snowflake-4479A1?style=flat-square&logo=postgresql&logoColor=white)
 ![Status](https://img.shields.io/badge/status-portfolio--cleaned-success?style=flat-square)
 
-Coursework from **Plataformas de Analítica de Negocios para Organizaciones (Gpo 101)**, semester 5 (S5), **Licenciatura en Innovación y Tecnología (LIT)**, Tecnológico de Monterrey — Campus CSF (Aug–Dec 2024).
+Coursework from **Plataformas de Analítica de Negocios para Organizaciones (Gpo 101)**, semester 5 (S5), **Licenciatura en Inteligencia de Negocios (LIN)**, Tecnológico de Monterrey — Campus CSF (Aug–Dec 2024).
 
 This repo bundles **four R-based exploratory data analysis scripts** built during the course, plus a **documented Snowflake data lakehouse pipeline** built as a team project. The code has been cleaned up from the original submitted drafts — bugs fixed, dead lines removed, deprecated syntax updated — so that it actually runs today, while `progression/` preserves two earlier, rawer drafts to show how the flagship script evolved.
 
@@ -34,7 +34,7 @@ This repo bundles **four R-based exploratory data analysis scripts** built durin
 | | |
 |---|---|
 | **Course** | Plataformas de Analítica de Negocios para Organizaciones (Gpo 101) |
-| **Program** | Licenciatura en Innovación y Tecnología (**LIT**) |
+| **Program** | Licenciatura en Inteligencia de Negocios (**LIN**) |
 | **Institution** | Tecnológico de Monterrey — Campus CSF |
 | **Semester** | S5, Aug–Dec 2024 |
 | **Deliverables covered** | 4 individual R/R Markdown analyses + 1 team Snowflake pipeline ("Evidencia 1") |
