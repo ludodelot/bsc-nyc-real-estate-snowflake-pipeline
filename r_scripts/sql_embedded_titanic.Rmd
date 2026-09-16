@@ -1,0 +1,194 @@
+---
+title: "ACT 01: Extracción de datos utilizando R y SQL"
+subtitle: "Inteligencia de Negocios | Tec de Monterrey CSF"
+author: "A01663977 - Ludovic Delot B"
+date: "Plataformas de analítica de negocios para organizaciones (Gpo 101)"
+header-includes:
+  - \usepackage{fontspec}
+  - \usepackage{authblk}
+  - \setmainfont{Montserrat}[
+      Path = /Users/ludovicdelotbravo/Library/Fonts/,
+      Extension      = .ttf,
+      UprightFont    = *-Regular,
+      BoldFont       = *-Bold,
+      ItalicFont     = *-Italic,
+      BoldItalicFont = *-BoldItalic]
+  - \usepackage{microtype}
+  - \usepackage{booktabs}
+  - \usepackage{longtable}
+  - \usepackage{float}
+  - \usepackage{caption}
+  - \usepackage[hidelinks]{hyperref}
+  - \usepackage{inconsolata}
+  - \usepackage{algorithm}
+  - \usepackage{algpseudocode}
+  - \usepackage{xcolor}
+output: 
+  pdf_document:
+    latex_engine: xelatex
+    highlight: tango
+    toc: yes
+    fig_width: 7
+    fig_height: 5
+    fig_caption: yes
+  html_document:
+    toc: yes
+
+---
+
+\newpage 
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,                # Shows the code
+  warning = FALSE,            # Hides warnings
+  message = FALSE,            # Hides messages
+  cache = TRUE,               # Allows cache
+  fig.align = "center",       # It centers figures
+  fig.width = 8,              # Width for figures
+  fig.height = 6,             # Heigh for figues
+  out.width = "80%",          # width in the final document
+  tidy = TRUE)                # Shows the code in a cleaner way
+```
+
+
+# R Markdown Setup Preset Ludovic
+
+```{r }
+library(readxl)
+library(dplyr)
+library(ggplot2)
+library(tidyr)
+library(tidyverse)
+library(scales)
+library(openxlsx)
+library(stringr)
+library(janitor)
+```
+
+# Lectura del DataSet
+
+```{r}
+#Se carga el csv en un dataframe
+df_titanic <- read_csv("data/titanic.csv")
+```
+
+# Estadística Descriptiva
+
+```{r}
+#Se limpia el nombre de las columnas
+df_titanic <- clean_names(df_titanic)
+#Se genera un resumen del dataframe
+summary(df_titanic)
+```
+
+# SQL Paquete
+
+```{r}
+# install.packages("sqldf")
+#Para hacer consultas de SQL en R
+library(sqldf)
+```
+
+# Q1. Pasajeros que son mayores de edad
+
+```{r}
+df_titanic_q1 <- sqldf(
+  "SELECT passenger_id, name, age 
+  FROM df_titanic
+  WHERE age >= 18")
+print(head(df_titanic_q1))
+```
+
+# Q2. Pasajeros que son hombres y mayores de 30 años
+
+```{r}
+df_titanic_q2 <- sqldf(
+  "SELECT passenger_id, name, sex, age
+  FROM df_titanic
+  WHERE sex = 'male' 
+  AND age > 30")
+print(head(df_titanic_q2))
+```
+
+# Q3. Nombre y Num Ticket
+
+```{r}
+df_titanic_q3 <- sqldf(
+  "SELECT name, ticket 
+  FROM df_titanic")
+print(head(df_titanic_q3))
+```
+
+# Q4. Nombres en orden alfabético
+
+```{r}
+df_titanic_q4 <- sqldf(
+  "SELECT name 
+  FROM df_titanic
+  ORDER BY name")
+print(head(df_titanic_q4))
+```
+
+# Q5. Pasajero con menor y mayor edad
+
+```{r}
+df_titanic_q5_1 <- sqldf(
+  "SELECT passenger_id, name, age 
+  FROM df_titanic
+  WHERE age IS NOT NULL
+  ORDER BY age 
+  LIMIT 1")
+print(df_titanic_q5_1)
+
+df_titanic_q5_2 <- sqldf(
+  "SELECT passenger_id, name, age 
+  FROM df_titanic
+  WHERE age IS NOT NULL
+  ORDER BY age DESC 
+  LIMIT 1")
+print(df_titanic_q5_2)
+```
+
+# Q6. Validación de NULLS
+
+```{r}
+
+df_titanic_q6 <- sqldf(
+  "SELECT *
+  FROM df_titanic
+  WHERE passenger_id IS NULL 
+  OR survived IS NULL 
+  OR pclass IS NULL 
+  OR name IS NULL 
+  OR sex IS NULL 
+  OR age IS NULL 
+  OR sib_sp IS NULL 
+  OR parch IS NULL 
+  OR ticket IS NULL 
+  OR fare IS NULL 
+  OR cabin IS NULL 
+  OR embarked IS NULL")
+
+print(head(df_titanic_q6))
+```
+
+# Funciones de SQL usadas
+
+- **SELECT**: Se utiliza para seleccionar columnas específicas o todas (`*`) de una tabla.
+
+- **WHERE**: Se utiliza para filtrar filas en función de una o más condiciones.
+
+- **AND**: Se utiliza en combinación con WHERE para agregar más condiciones.
+
+- **ORDER BY**: Se utiliza para ordenar los resultados de una consulta.
+
+- **DESC**: Ordena los resultados de manera descendente.
+
+- **LIMIT**: Se utiliza para limitar el número de filas devueltas por la consulta.
+
+- **IS NULL**: Se utiliza para verificar si una columna tiene NULLS
+
+- **IS NOT NULL**: Se utiliza para verificar si una columna no tiene valores NULLS
+
+- **OR**: Se utiliza en combinación con WHERE para agregar condiciones alternativas.

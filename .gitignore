@@ -1,0 +1,22 @@
+# R
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+*.Rproj
+
+# knitr/rmarkdown build artifacts
+*_cache/
+*_files/
+*.html
+*.pdf
+!docs/*.pdf
+
+# OS
+.DS_Store
+
+# Data (see README for download links — not checked in)
+data/
+*.csv
+*.xlsx
+!progression/*.R

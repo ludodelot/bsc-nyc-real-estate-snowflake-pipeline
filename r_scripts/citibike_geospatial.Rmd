@@ -1,0 +1,107 @@
+---
+title: "CitiBike NYC — Geospatial Trip Analysis"
+subtitle: "Plataformas de Analítica de Negocios para Organizaciones (Gpo 101) — Tec de Monterrey CSF"
+author: "Ludovic Delot Bravo"
+date: "2024-08-22"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Overview
+
+Geospatial exploration of a CitiBike (NYC bike-share) trip dataset: trip
+duration cleanup, per-rideable-type averages, and two `sf`/`tigris`-based maps
+of trip start locations over NYC census blocks.
+
+Data source: CitiBike system trip data (public, published monthly by
+Lyft/CitiBike at https://citibikenyc.com/system-data). The raw CSV is not
+included in this repo — see the README for the download link. Update
+`DATA_PATH` below before running.
+
+```{r libraries}
+pacman::p_load(dplyr, hms, ggplot2, tidyr, sf, rnaturalearth, rnaturalearthdata,
+                tigris, RColorBrewer)
+```
+
+```{r load-data}
+DATA_PATH <- "data/citibike/202403-citibike-tripdata.csv"
+df <- read.csv(DATA_PATH)
+
+missing_data <- colSums(is.na(df))
+
+df$tripduration <- difftime(df$ended_at, df$started_at, units = "mins")
+hist(as.numeric(df$tripduration))
+```
+
+```{r filter-durations}
+# Trips under a minute are usually a false start/re-dock; trips over 45
+# minutes are typically lost/stolen bikes rather than genuine rides.
+df <- filter(df, tripduration <= 45, tripduration > 0)
+hist(as.numeric(df$tripduration))
+```
+
+```{r inspect}
+head(df, 5)
+colnames(df)
+```
+
+```{r average-duration}
+df$tripduration <- as.numeric(df$tripduration)
+promedio_duracion <- mean(df$tripduration, na.rm = TRUE)
+promedio_duracion
+```
+
+```{r station-counts}
+num_estaciones_inicio <- length(unique(df$start_station_name))
+num_estaciones_fin    <- length(unique(df$end_station_name))
+total_estaciones <- length(unique(c(df$start_station_name, df$end_station_name)))
+total_estaciones
+```
+
+```{r export}
+write.csv(df, file = "df.csv", row.names = FALSE)
+```
+
+```{r duration-by-bike-type}
+tapply(df$tripduration, df$rideable_type, mean)
+```
+
+## Map 1: trip starts over a US basemap
+
+```{r world-basemap}
+world <- ne_countries(scale = "medium", returnclass = "sf")
+usa <- subset(world, world$sov_a3 == "USA")
+
+tabla1 <- df %>%
+  group_by(start_station_id) %>%
+  summarise(conteo = n(),
+            longitud = mean(start_lng),
+            latitud = mean(start_lat))
+
+ggplot(data = usa) +
+  geom_sf() +
+  geom_point(data = tabla1, aes(x = longitud, y = latitud), size = 2,
+             shape = 23, fill = "red") +
+  coord_sf(xlim = c(-73.84, -74.05), ylim = c(40.63, 40.892), expand = FALSE)
+```
+
+## Map 2: trip density over NYC census blocks
+
+```{r nyc-blocks}
+nyc_blocks <- blocks(state = "NY", county = c("New York", "Kings", "Bronx", "Queens"),
+                      year = 2020, class = "sf")
+```
+
+```{r nyc-block-map}
+ggplot(data = nyc_blocks) +
+  geom_sf(fill = "antiquewhite") +
+  geom_point(data = tabla1, aes(x = longitud, y = latitud, size = conteo, fill = conteo),
+             pch = 21, alpha = 0.7) +
+  scale_fill_gradientn(colors = c("red", "yellow", "green")) +
+  coord_sf(xlim = c(-73.84, -74.05), ylim = c(40.63, 40.892), expand = FALSE) +
+  guides(size = "none") +
+  theme(panel.background = element_rect(fill = "lightblue"))
+```

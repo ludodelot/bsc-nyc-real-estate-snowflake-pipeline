@@ -1,0 +1,100 @@
+---
+title: "Ecommerce Customers — Linear Regression"
+subtitle: "Plataformas de Analítica de Negocios para Organizaciones (Gpo 101) — Tec de Monterrey CSF"
+author: "Ludovic Delot Bravo"
+date: "2024-08-21"
+output: html_document
+---
+
+## Overview
+
+Small regression exercise on a synthetic "Ecommerce Customers" dataset:
+correlation/pairs exploration, four simple linear plots against
+`yearly_amount_spent`, a multiple linear regression, and stepwise (AIC)
+variable selection.
+
+Cleanup notes:
+
+- Fixed `aes(apha = 0.01)` -> `aes(alpha = 0.01)` in the `ggpairs()` call (typo
+  silently ignored the intended transparency setting).
+- Fixed `dev.off` (missing parentheses, so it never actually closed the
+  graphics device) -> `dev.off()`.
+
+Data source: this is the standard "Ecommerce Customers" teaching dataset used
+in several R regression tutorials (columns: email, address, avatar,
+avg_session_length, time_on_app, time_on_website, length_of_membership,
+yearly_amount_spent). Not included here — see README.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r libraries-and-load}
+pacman::p_load(GGally, janitor, readr, dplyr, MASS)
+
+DATA_PATH <- "data/ecommerce_customers.csv"
+usuarios <- read_csv(DATA_PATH)
+
+head(usuarios, 5)
+usuarios <- clean_names(usuarios)
+summary(usuarios)
+
+# Drop identifying / non-predictive columns
+usuarios <- usuarios %>%
+  dplyr::select(-email, -address, -avatar)
+
+hist(usuarios$yearly_amount_spent)
+# Modeling assumptions to check before fitting: correlation, normality, linearity
+```
+
+```{r scatterplots}
+plot(yearly_amount_spent ~ avg_session_length, data = usuarios)
+plot(yearly_amount_spent ~ time_on_app, data = usuarios)
+plot(yearly_amount_spent ~ time_on_website, data = usuarios)
+plot(yearly_amount_spent ~ length_of_membership, data = usuarios)
+```
+
+```{r scatterplots-with-trend-lines}
+plot(yearly_amount_spent ~ avg_session_length, data = usuarios,
+     main = "Gasto Anual vs. Tiempo en Sesión",
+     xlab = "Tiempo en Sesión", ylab = "Gasto Anual")
+abline(lm(yearly_amount_spent ~ avg_session_length, data = usuarios), col = "red")
+
+plot(yearly_amount_spent ~ time_on_app, data = usuarios,
+     main = "Gasto Anual vs. Tiempo en la App",
+     xlab = "Tiempo en la App", ylab = "Gasto Anual")
+abline(lm(yearly_amount_spent ~ time_on_app, data = usuarios), col = "red")
+
+plot(yearly_amount_spent ~ time_on_website, data = usuarios,
+     main = "Gasto Anual vs. Tiempo en el Sitio Web",
+     xlab = "Tiempo en el Sitio Web", ylab = "Gasto Anual")
+abline(lm(yearly_amount_spent ~ time_on_website, data = usuarios), col = "red")
+
+plot(yearly_amount_spent ~ length_of_membership, data = usuarios,
+     main = "Gasto Anual vs. Duración de Membresía",
+     xlab = "Duración de Membresía", ylab = "Gasto Anual")
+abline(lm(yearly_amount_spent ~ length_of_membership, data = usuarios), col = "red")
+
+dev.off()
+cor(usuarios)
+ggpairs(usuarios, mapping = aes(alpha = 0.01))
+```
+
+```{r regression-and-stepwise-selection}
+spent <- lm(yearly_amount_spent ~ length_of_membership + avg_session_length +
+              time_on_app + time_on_website, data = usuarios)
+summary(spent)
+
+# Stepwise (AIC-based) variable selection
+modelo <- stepAIC(spent, direction = "both", trace = FALSE)
+summary(modelo)
+
+newdata <- data.frame(
+  length_of_membership = mean(usuarios$length_of_membership),
+  avg_session_length   = mean(usuarios$avg_session_length),
+  time_on_app          = mean(usuarios$time_on_app),
+  time_on_website       = mean(usuarios$time_on_website))
+
+y_predict <- predict(modelo, newdata)
+y_predict
+```
